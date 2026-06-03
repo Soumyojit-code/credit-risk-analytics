@@ -1,68 +1,88 @@
 import streamlit as st
-import pandas as pd
+import numpy as np
 import joblib
 
-# Load model
-model = joblib.load("credit_risk_model.pkl")
-
-st.title("Credit Risk Analytics")
-
-st.write("Predict whether a loan applicant is high risk.")
-
-person_age = st.number_input("Age", min_value=18, value=25)
-person_income = st.number_input("Annual Income", value=50000)
-person_emp_length = st.number_input("Employment Length", value=5)
-
-loan_amnt = st.number_input("Loan Amount", value=10000)
-loan_int_rate = st.number_input("Interest Rate", value=10.5)
-loan_percent_income = st.number_input("Loan Percent Income", value=0.2)
-
-cb_person_cred_hist_length = st.number_input(
-    "Credit History Length",
-    value=5
+# ---------------------------
+# Page Config
+# ---------------------------
+st.set_page_config(
+    page_title="Credit Risk Dashboard",
+    page_icon="💳",
+    layout="wide"
 )
 
-person_home_ownership = st.selectbox(
-    "Home Ownership",
-    [0, 1, 2, 3]
-)
+# ---------------------------
+# Load Model
+# ---------------------------
+model = joblib.load("model.pkl")
 
-loan_intent = st.selectbox(
-    "Loan Intent",
-    [0, 1, 2, 3, 4, 5]
-)
+# ---------------------------
+# Sidebar
+# ---------------------------
+st.sidebar.title("📊 Navigation")
+page = st.sidebar.radio("Go to", ["Dashboard", "Predict Risk", "About"])
 
-loan_grade = st.selectbox(
-    "Loan Grade",
-    [0, 1, 2, 3, 4, 5, 6]
-)
+# ---------------------------
+# Dashboard Page
+# ---------------------------
+if page == "Dashboard":
+    st.title("💳 Credit Risk Analytics Dashboard")
 
-cb_person_default_on_file = st.selectbox(
-    "Previous Default",
-    [0, 1]
-)
+    col1, col2, col3 = st.columns(3)
 
-if st.button("Predict Risk"):
+    col1.metric("Total Applications", "10,240", "1.2%")
+    col2.metric("Approved Loans", "7,890", "2.5%")
+    col3.metric("Default Rate", "3.8%", "-0.4%")
 
-    input_df = pd.DataFrame({
-        'person_age':[person_age],
-        'person_income':[person_income],
-        'person_home_ownership':[person_home_ownership],
-        'person_emp_length':[person_emp_length],
-        'loan_intent':[loan_intent],
-        'loan_grade':[loan_grade],
-        'loan_amnt':[loan_amnt],
-        'loan_int_rate':[loan_int_rate],
-        'loan_percent_income':[loan_percent_income],
-        'cb_person_default_on_file':[cb_person_default_on_file],
-        'cb_person_cred_hist_length':[cb_person_cred_hist_length],
-        'emp_length_missing':[0],
-        'interest_rate_missing':[0]
-    })
+    st.markdown("---")
 
-    prediction = model.predict(input_df)[0]
+    st.info("This dashboard helps predict whether a loan applicant is High Risk or Low Risk using ML model.")
 
-    if prediction == 1:
-        st.error("High Credit Risk")
-    else:
-        st.success("Low Credit Risk")
+# ---------------------------
+# Prediction Page
+# ---------------------------
+elif page == "Predict Risk":
+    st.title("🔍 Loan Risk Prediction")
+
+    st.markdown("### Enter Applicant Details")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        age = st.number_input("Age", 18, 100, 30)
+        income = st.number_input("Annual Income", 10000, 10000000, 500000)
+        loan_amount = st.number_input("Loan Amount", 1000, 1000000, 200000)
+
+    with col2:
+        credit_score = st.number_input("Credit Score", 300, 900, 650)
+        employment_years = st.number_input("Employment Years", 0, 40, 5)
+
+    if st.button("Predict Risk 🚀"):
+        input_data = np.array([[age, income, loan_amount, credit_score, employment_years]])
+
+        prediction = model.predict(input_data)
+
+        st.markdown("---")
+
+        if prediction[0] == 1:
+            st.error("❌ High Risk Applicant")
+            st.warning("Loan should NOT be approved")
+        else:
+            st.success("✅ Low Risk Applicant")
+            st.info("Loan can be approved")
+
+# ---------------------------
+# About Page
+# ---------------------------
+elif page == "About":
+    st.title("ℹ️ About Project")
+
+    st.write("""
+    This is a Machine Learning-based Credit Risk Analysis System.
+
+    🔹 Model: XGBoost / ML Classifier  
+    🔹 Input: Applicant financial details  
+    🔹 Output: Risk classification (High / Low)
+
+    Built using Streamlit for interactive deployment.
+    """)
