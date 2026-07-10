@@ -79,7 +79,7 @@ The prediction should be used as a supporting tool only. Always perform proper d
 
 ## 👨‍💻 Author
 
-Created by [Your Name]
+Created by SOUMYOJIT BANERJEE
 
 ---
 
